@@ -1,0 +1,54 @@
+"""
+Licenced under GNU GENERAL PUBLIC LICENSE.
+See file "COPYING" for full license.
+
+Developer: Aaron Kincer
+Version 1.0.0
+June 30th 2023
+"""
+
+import RPi.GPIO as GPIO
+from time import sleep
+
+"""Global Settings"""
+GPIO.setwarnings(False)     # Disable warnings involving GPIO
+GPIO.setmode(GPIO.BOARD)    # Assign pins according to board numbering instead of GPIO numbers
+GPIO.setup(12, GPIO.OUT)    # Assign pin 12 as pwm output 
+pwm=GPIO.PWM(12, 50)        # Assign pin 12 to push 50Hz
+pwm.start(0)                # Initialize pwm, set default Duty Cycle to 0 to prevent move on startup
+
+"""Function to allow for easy angle setting"""
+def SetAngle(angle):
+	duty = angle / 18 + 2   # Adjust Duty Cycle for 
+	GPIO.output(12, True)   # Turns on the pin for output
+	pwm.ChangeDutyCycle(duty)  # Update duty cycle to match what we calculated
+	sleep(1)
+	GPIO.output(12, False)     # Turns off the pin
+	pwm.ChangeDutyCycle(0)   # Set duty back to 0 so we aren't continuously sending inputs to the servo
+
+"""Tail Movement"""
+while True:
+    AnglePosition = 90              # LocalVariable. Default Angle, Straight Tail
+    SetAngle(AnglePosition)
+    sleep(.1)
+    cycles = 0
+    #print("Cycles Completed", cycles)
+    for i in range(90,180):         # Moving from 90° to 180°
+        SetAngle(AnglePosition)
+        sleep(.1)
+        AnglePosition += 1
+        #print(AnglePosition)
+    for i in range(0,90):           # Move from 90° to 0°
+        SetAngle(AnglePosition)
+        sleep(.1)
+        AnglePosition -= 1
+        #print(AnglePosition)
+    for i in range(0,90):           # Back to Center
+        SetAngle(AnglePosition)
+        sleep(.1)
+        AnglePosition += 1
+        #print(AnglePosition)    
+    cycles += 1  
+        
+pwm.stop()
+GPIO.cleanup()
